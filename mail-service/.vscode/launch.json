@@ -1,0 +1,42 @@
+{
+    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
+    // Pointez pour afficher la description des attributs existants.
+    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Mail Service - WS with Kubernetes",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--reload",
+                "--port",
+                "8001"
+            ],
+            "jinja": true,
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "bridge-to-kubernetes.resource",
+            "env": {
+                "GRPC_DNS_RESOLVER": "native"
+            }
+        },
+        {
+            "name": "Mail Service - WS",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--reload",
+                "--port",
+                "8001"
+            ],
+            "jinja": true,
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+FROM python:3.10-slim-bullseye
+
+ENV PORT 80
+
+COPY . /app
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get -y install libpq-dev gcc build-essential --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
+
+CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT

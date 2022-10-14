@@ -1,0 +1,95 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: default
+spec:
+  template:
+    metadata:
+      name: user-service-v0
+    spec:
+      containers:
+        - image: smixi/user-service
+          imagePullPolicy: Always
+          env:
+            - name: POSTGRES_HOST
+              value: "postgres-service"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-runner
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-runner
+  template:
+    metadata:
+      labels:
+        app: user-runner
+    spec:
+      containers:
+        - image: smixi/user-service:runner
+          name: user-runner
+          imagePullPolicy: Always
+          env:
+            - name: HTTP_CLOUD_EVENT_SINK
+              value: "http://broker-ingress.knative-eventing.svc.cluster.local/default/user-email-broker"
+            - name: POSTGRES_HOST
+              value: "postgres-service"
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mail-service
+  namespace: default
+spec:
+  template:
+    metadata:
+      name: mail-service-v0
+    spec:
+      containers:
+        - image: smixi/mail-service
+          imagePullPolicy: Always
+          env:
+            - name: POSTGRES_HOST
+              value: "postgres-service"
+            - name: SMTP_FROM_EMAIL
+              value: "test@mail.example.com"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: postgres-deployment
+    namespace: default
+    labels:
+      app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      volumes:
+      - name: init-script-vol
+        configMap:
+          name: init-script
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "postgres"
+        - name: POSTGRES_MULTIPLE_DATABASES 
+          value: "\"user-service\",\"mail-service\""
+        volumeMounts:
+        - name: init-script-vol
+          mountPath: /docker-entrypoint-initdb.d

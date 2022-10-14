@@ -1,0 +1,31 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: email-trigger-user-created
+spec:
+  broker: user-email-broker
+  filter:
+    attributes:
+      type: UserCreated
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: mail-service
+    uri: /mail/welcome-user
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: email-trigger-user-verified
+spec:
+  broker: user-email-broker
+  filter:
+    attributes:
+      type: UserVerified
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: mail-service
+    uri: /mail/user-verified
